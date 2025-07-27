@@ -125,31 +125,31 @@ class TradingAgentsGraph:
             "social": ToolNode(
                 [
                     # online tools
-                    self.toolkit.get_stock_news_openai,
+                    self.toolkit.get_stock_news,
                     # offline tools
-                    self.toolkit.get_reddit_stock_info,
+                    # self.toolkit.get_reddit_stock_info,
                 ]
             ),
             "news": ToolNode(
                 [
                     # online tools
-                    self.toolkit.get_global_news_openai,
+                    self.toolkit.get_global_news,
                     self.toolkit.get_google_news,
                     # offline tools
-                    self.toolkit.get_finnhub_news,
-                    self.toolkit.get_reddit_news,
+                    # self.toolkit.get_finnhub_news,
+                    # self.toolkit.get_reddit_news,
                 ]
             ),
             "fundamentals": ToolNode(
                 [
                     # online tools
-                    self.toolkit.get_fundamentals_openai,
+                    self.toolkit.get_fundamentals,
                     # offline tools
-                    self.toolkit.get_finnhub_company_insider_sentiment,
-                    self.toolkit.get_finnhub_company_insider_transactions,
-                    self.toolkit.get_simfin_balance_sheet,
-                    self.toolkit.get_simfin_cashflow,
-                    self.toolkit.get_simfin_income_stmt,
+                    # self.toolkit.get_finnhub_company_insider_sentiment,
+                    # self.toolkit.get_finnhub_company_insider_transactions,
+                    # self.toolkit.get_simfin_balance_sheet,
+                    # self.toolkit.get_simfin_cashflow,
+                    # self.toolkit.get_simfin_income_stmt,
                 ]
             ),
         }
@@ -170,10 +170,20 @@ class TradingAgentsGraph:
             trace = []
             for chunk in self.graph.stream(init_agent_state, **args):
                 if len(chunk["messages"]) == 0:
-                    pass
-                else:
-                    chunk["messages"][-1].pretty_print()
-                    trace.append(chunk)
+                    continue
+                
+                message = chunk["messages"][-1]
+                
+                if message.content and message.content.strip():
+                    
+                    if "FINAL TRANSACTION PROPOSAL:" in message.content:
+                        if not hasattr(self, '_final_printed'):
+                            message.pretty_print()
+                            self._final_printed = True
+                    else:
+                        message.pretty_print()
+                
+                trace.append(chunk)
 
             final_state = trace[-1]
         else:
