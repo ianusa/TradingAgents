@@ -1,7 +1,10 @@
 import questionary
 from typing import List, Optional, Tuple, Dict
+from rich.console import Console
 
 from cli.models import AnalystType
+
+console = Console()
 
 ANALYST_ORDER = [
     ("Market Analyst", AnalystType.MARKET),
@@ -277,3 +280,70 @@ def select_llm_provider() -> tuple[str, str]:
     print(f"You selected: {display_name}\tURL: {url}")
     
     return display_name, url
+
+
+def get_google_parameters() -> Dict[str, Optional[int | float]]:
+    """Get Google-specific parameters for thinking models."""
+    parameters = {}
+
+    console.print("\n[bold]Configure Google Model Parameters[/bold]")
+    console.print("[dim]Press Enter to use default values (shown in brackets)[/dim]\n")
+
+    # Quick think model parameters
+    console.print("[bold cyan]Quick Thinking Model Parameters:[/bold cyan]")
+
+    # Temperature for quick think
+    temp_str = questionary.text(
+        "Temperature (0.0-2.0) [None]:",
+        validate=lambda x: x == "" or (x.replace(".", "").isdigit() and 0 <= float(x) <= 2) or "Please enter a number between 0.0 and 2.0",
+        style=questionary.Style([("text", "fg:green"), ("highlighted", "noinherit")]),
+    ).ask()
+    if temp_str and temp_str.strip():
+        parameters["quick_think_llm_temperature"] = float(temp_str)
+
+    # Max tokens for quick think (default 5120)
+    max_tokens_str = questionary.text(
+        "Max tokens [5120]:",
+        validate=lambda x: x == "" or (x.isdigit() and int(x) > 0) or "Please enter a positive integer",
+        style=questionary.Style([("text", "fg:green"), ("highlighted", "noinherit")]),
+    ).ask()
+    parameters["quick_think_llm_max_tokens"] = int(max_tokens_str) if max_tokens_str and max_tokens_str.strip() else 5120
+
+    # Thinking budget for quick think (default 1024)
+    thinking_budget_str = questionary.text(
+        "Thinking budget [1024]:",
+        validate=lambda x: x == "" or (x.isdigit() and int(x) > 0) or "Please enter a positive integer",
+        style=questionary.Style([("text", "fg:green"), ("highlighted", "noinherit")]),
+    ).ask()
+    parameters["quick_think_llm_thinking_budget"] = int(thinking_budget_str) if thinking_budget_str and thinking_budget_str.strip() else 1024
+
+    console.print("\n[bold cyan]Deep Thinking Model Parameters:[/bold cyan]")
+
+    # Temperature for deep think
+    temp_str = questionary.text(
+        "Temperature (0.0-2.0) [None]:",
+        validate=lambda x: x == "" or (x.replace(".", "").isdigit() and 0 <= float(x) <= 2) or "Please enter a number between 0.0 and 2.0",
+        style=questionary.Style([("text", "fg:green"), ("highlighted", "noinherit")]),
+    ).ask()
+    if temp_str and temp_str.strip():
+        parameters["deep_think_llm_temperature"] = float(temp_str)
+
+    # Max tokens for deep think
+    max_tokens_str = questionary.text(
+        "Max tokens [None]:",
+        validate=lambda x: x == "" or (x.isdigit() and int(x) > 0) or "Please enter a positive integer",
+        style=questionary.Style([("text", "fg:green"), ("highlighted", "noinherit")]),
+    ).ask()
+    if max_tokens_str and max_tokens_str.strip():
+        parameters["deep_think_llm_max_tokens"] = int(max_tokens_str)
+
+    # Thinking budget for deep think
+    thinking_budget_str = questionary.text(
+        "Thinking budget [None]:",
+        validate=lambda x: x == "" or (x.isdigit() and int(x) > 0) or "Please enter a positive integer",
+        style=questionary.Style([("text", "fg:green"), ("highlighted", "noinherit")]),
+    ).ask()
+    if thinking_budget_str and thinking_budget_str.strip():
+        parameters["deep_think_llm_thinking_budget"] = int(thinking_budget_str)
+
+    return parameters

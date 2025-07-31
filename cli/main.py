@@ -480,6 +480,17 @@ def get_user_selections():
     selected_shallow_thinker = select_shallow_thinking_agent(selected_llm_provider)
     selected_deep_thinker = select_deep_thinking_agent(selected_llm_provider)
 
+    # Step 7: Google-specific parameters (if Google provider is selected)
+    google_params = {}
+    if selected_llm_provider.lower() == "google":
+        console.print(
+            create_question_box(
+                "Step 7: Google Model Parameters",
+                "Configure temperature, max tokens, and thinking budget for Google models"
+            )
+        )
+        google_params = get_google_parameters()
+
     return {
         "ticker": selected_ticker,
         "analysis_date": analysis_date,
@@ -489,6 +500,7 @@ def get_user_selections():
         "backend_url": backend_url,
         "shallow_thinker": selected_shallow_thinker,
         "deep_thinker": selected_deep_thinker,
+        **google_params
     }
 
 
@@ -743,6 +755,13 @@ def run_analysis():
     config["deep_think_llm"] = selections["deep_thinker"]
     config["backend_url"] = selections["backend_url"]
     config["llm_provider"] = selections["llm_provider"].lower()
+
+    # Add Google-specific parameters if they exist (only non-None values)
+    for param in ["quick_think_llm_temperature", "quick_think_llm_max_tokens",
+                  "quick_think_llm_thinking_budget", "deep_think_llm_temperature",
+                  "deep_think_llm_max_tokens", "deep_think_llm_thinking_budget"]:
+        if param in selections:
+            config[param] = selections[param]
 
     # Initialize the graph
     graph = TradingAgentsGraph(
