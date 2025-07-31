@@ -98,7 +98,17 @@ def create_search_provider_factory() -> SearchProviderFactoryImpl:
     # Register default providers
     def create_google_provider(config: Dict[str, Any]) -> SearchProvider:
         from .search_provider import GoogleSearchProvider
-        return GoogleSearchProvider(config["quick_think_llm"])
+        kwargs = {}
+        if "quick_think_llm_thinking_budget" in config:
+            kwargs["thinking_budget"] = config["quick_think_llm_thinking_budget"]
+        if "quick_think_llm_max_tokens" in config:
+            kwargs["max_tokens"] = config["quick_think_llm_max_tokens"]
+        if "quick_think_llm_temperature" in config:
+            kwargs["temperature"] = config["quick_think_llm_temperature"]
+        return GoogleSearchProvider(
+            config["quick_think_llm"],
+            **kwargs
+        )
     
     def create_openai_provider(config: Dict[str, Any]) -> SearchProvider:
         from .search_provider import OpenAISearchProvider
