@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from openai import OpenAI
 from google import genai
+from tradingagents.utils.retry_utils import create_retry_wrapper
 
 
 class EmbeddingProvider(ABC):
@@ -36,13 +37,18 @@ class GeminiEmbeddingProvider(EmbeddingProvider):
     def __init__(self, backend_url: str, embedding_model: str = "gemini-embedding-001"):
         self.client = genai.Client()
         self._embedding_model = embedding_model
+        self._retry_wrapper = create_retry_wrapper()
 
     def get_embedding(self, text: str)->list[float]:
-        response = self.client.models.embed_content(
-            model=self._embedding_model,
-            contents=text
-        )
-        return response.embeddings[0].values
+        @self._retry_wrapper
+        def _embed_with_retry():
+            response = self.client.models.embed_content(
+                model=self._embedding_model,
+                contents=text
+            )
+            return response.embeddings[0].values
+
+        return _embed_with_retry()
     
     @property
     def model_name(self)->str:
