@@ -1,8 +1,12 @@
 import time
 import json
+from ...utils.retry_utils import RetryableLLM
 
 
 def create_research_manager(llm, memory):
+    # Wrap LLM with retry logic
+    retryable_llm = RetryableLLM(llm)
+
     def research_manager_node(state) -> dict:
         history = state["investment_debate_state"].get("history", "")
         market_research_report = state["market_report"]
@@ -36,7 +40,7 @@ Here are your past reflections on mistakes:
 Here is the debate:
 Debate History:
 {history}"""
-        response = llm.invoke(prompt)
+        response = retryable_llm.invoke(prompt)
 
         new_investment_debate_state = {
             "judge_decision": response.content,

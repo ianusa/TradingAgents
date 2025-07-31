@@ -1,8 +1,12 @@
 import time
 import json
+from tradingagents.utils.retry_utils import RetryableLLM
 
 
 def create_risk_manager(llm, memory):
+    # Wrap LLM with retry logic
+    retryable_llm = RetryableLLM(llm)
+
     def risk_manager_node(state) -> dict:
 
         company_name = state["company_of_interest"]
@@ -43,7 +47,7 @@ Deliverables:
 
 Focus on actionable insights and continuous improvement. Build on past lessons, critically evaluate all perspectives, and ensure each decision advances better outcomes."""
 
-        response = llm.invoke(prompt)
+        response = retryable_llm.invoke(prompt)
 
         new_risk_debate_state = {
             "judge_decision": response.content,
