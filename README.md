@@ -122,9 +122,11 @@ export FINNHUB_API_KEY=$YOUR_FINNHUB_API_KEY
 You will need the OpenAI API or GEMINI API for all the agents.
 ```bash
 export OPENAI_API_KEY=$YOUR_OPENAI_API_KEY
-export GEMINI_API_KEY=$YOUR_GEMINI_API_KEY
 export GOOGLE_API_KEY=$YOUR_GEMINI_API_KEY
 ```
+
+Notes:
+When using Gemini models. OPENAI_API_KEY can be omitted.
 
 ### CLI Usage
 
