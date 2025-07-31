@@ -1,9 +1,13 @@
 import functools
 import time
 import json
+from tradingagents.utils.retry_utils import RetryableLLM
 
 
 def create_trader(llm, memory):
+    # Wrap LLM with retry logic
+    retryable_llm = RetryableLLM(llm)
+
     def trader_node(state, name):
         company_name = state["company_of_interest"]
         investment_plan = state["investment_plan"]
@@ -35,7 +39,7 @@ def create_trader(llm, memory):
             context,
         ]
 
-        result = llm.invoke(messages)
+        result = retryable_llm.invoke(messages)
 
         return {
             "messages": [result],
