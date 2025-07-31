@@ -1,9 +1,13 @@
 from langchain_core.messages import AIMessage
 import time
 import json
+from tradingagents.utils.retry_utils import RetryableLLM
 
 
 def create_bull_researcher(llm, memory):
+    # Wrap LLM with retry logic
+    retryable_llm = RetryableLLM(llm)
+
     def bull_node(state) -> dict:
         investment_debate_state = state["investment_debate_state"]
         history = investment_debate_state.get("history", "")
@@ -42,7 +46,7 @@ Reflections from similar situations and lessons learned: {past_memory_str}
 Use this information to deliver a compelling bull argument, refute the bear's concerns, and engage in a dynamic debate that demonstrates the strengths of the bull position. You must also address reflections and learn from lessons and mistakes you made in the past.
 """
 
-        response = llm.invoke(prompt)
+        response = retryable_llm.invoke(prompt)
 
         argument = f"Bull Analyst: {response.content}"
 
