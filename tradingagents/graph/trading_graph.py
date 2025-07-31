@@ -65,8 +65,33 @@ class TradingAgentsGraph:
             self.deep_thinking_llm = ChatAnthropic(model=self.config["deep_think_llm"], base_url=self.config["backend_url"])
             self.quick_thinking_llm = ChatAnthropic(model=self.config["quick_think_llm"], base_url=self.config["backend_url"])
         elif self.config["llm_provider"].lower() == "google":
-            self.deep_thinking_llm = ChatGoogleGenerativeAI(model=self.config["deep_think_llm"])
-            self.quick_thinking_llm = ChatGoogleGenerativeAI(model=self.config["quick_think_llm"])
+            kwargs = {}
+            if "deep_think_llm_thinking_budget" in self.config:
+                kwargs["thinking_budget"] = self.config[
+                    "deep_think_llm_thinking_budget"
+                ]
+            if "deep_think_llm_max_tokens" in self.config:
+                kwargs["max_output_tokens"] = self.config["deep_think_llm_max_tokens"]
+            if "deep_think_llm_temperature" in self.config:
+                kwargs["temperature"] = self.config["deep_think_llm_temperature"]
+
+            self.deep_thinking_llm = ChatGoogleGenerativeAI(
+                model=self.config["deep_think_llm"], **kwargs
+            )
+
+            kwargs = {}
+            if "quick_think_llm_thinking_budget" in self.config:
+                kwargs["thinking_budget"] = self.config[
+                    "quick_think_llm_thinking_budget"
+                ]
+            if "quick_think_llm_max_tokens" in self.config:
+                kwargs["max_output_tokens"] = self.config["quick_think_llm_max_tokens"]
+            if "quick_think_llm_temperature" in self.config:
+                kwargs["temperature"] = self.config["quick_think_llm_temperature"]
+
+            self.quick_thinking_llm = ChatGoogleGenerativeAI(
+                model=self.config["quick_think_llm"], **kwargs
+            )
         else:
             raise ValueError(f"Unsupported LLM provider: {self.config['llm_provider']}")
         
@@ -174,7 +199,7 @@ class TradingAgentsGraph:
                 
                 message = chunk["messages"][-1]
                 
-                if message.content and message.content.strip():
+                if message.content and isinstance(message.content, str) and message.content.strip():
                     
                     if "FINAL TRANSACTION PROPOSAL:" in message.content:
                         if not hasattr(self, '_final_printed'):
